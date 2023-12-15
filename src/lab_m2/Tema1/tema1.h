@@ -52,7 +52,7 @@ namespace m2
         float mirrorRotationOZ;
         unsigned int ifParticle;
         unsigned int ifCountour;
-        void ResetParticlesFireworks(int xSize, int ySize, int zSize);
+        void InitParticles(int xSize, int ySize, int zSize);
         unsigned int UploadCubeMapTexture(const std::string &pos_x, const std::string &pos_y, const std::string &pos_z, const std::string &neg_x, const std::string &neg_y, const std::string &neg_z);
         void CreateFramebuffer(int width, int height);
 

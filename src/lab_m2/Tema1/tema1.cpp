@@ -23,7 +23,7 @@ void Tema1::Init()
     nrInstances = 0;
     maxInstances = 50;
     shrink = 1.0;
-    mirrorPosition = glm::vec3(0, 0.5, -2);
+    mirrorPosition = glm::vec3(0, 0, 0);
     mirrorRotationOX = 0;
     mirrorRotationOY = 0;
     mirrorRotationOZ = 0;
@@ -38,7 +38,7 @@ void Tema1::Init()
 
     // Load a mesh from file into GPU memory
     {
-        Mesh *mesh = new Mesh("bunny");
+        Mesh *mesh = new Mesh("quad");
         mesh->LoadMesh(
             PATH_JOIN(window->props.selfDir, RESOURCE_PATH::MODELS, "primitives"),
             "screen_quad.obj");
@@ -66,13 +66,13 @@ void Tema1::Init()
     {
         Shader *shader = new Shader("outline");
         shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M2, "Tema1",
-                                    "shaders", "VertexShader.glsl"),
+                                    "shaders", "OutlineVS.glsl"),
                           GL_VERTEX_SHADER);
         shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M2, "Tema1",
-                                    "shaders", "GeometryShader.glsl"),
+                                    "shaders", "OutlineGS.glsl"),
                           GL_GEOMETRY_SHADER);
         shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M2, "Tema1",
-                                    "shaders", "FragmentShader.glsl"),
+                                    "shaders", "OutlineFS.glsl"),
                           GL_FRAGMENT_SHADER);
         shader->CreateAndLink();
         shaders[shader->GetName()] = shader;
@@ -131,7 +131,7 @@ void Tema1::Init()
     generator_position = glm::vec3(0, 0, 0);
     scene = 0;
     offset = 0.05f;
-    ResetParticlesFireworks(20, 20, 20);
+    InitParticles(20, 20, 20);
     color_texture = 0;
     depth_texture = 0;
 
@@ -310,7 +310,7 @@ Tema1::UploadCubeMapTexture(const std::string &pos_x, const std::string &pos_y,
 
 ParticleEffect<Particle> *particleEffect;
 
-void Tema1::ResetParticlesFireworks(int xSize, int ySize, int zSize)
+void Tema1::InitParticles(int xSize, int ySize, int zSize)
 {
     unsigned int nrParticles = 500;
 
@@ -323,12 +323,7 @@ void Tema1::ResetParticlesFireworks(int xSize, int ySize, int zSize)
     for (unsigned int i = 0; i < nrParticles; i++)
     {
         glm::vec3 pos(0);
-
         glm::vec3 speed(0);
-        // speed = glm::normalize(glm::vec3(0, 1, 0) - glm::vec3(pos));
-        // speed *= (rand() % 100 / 100.0f);
-        // speed += glm::vec3(rand() % 5 / 5.0f, rand() % 5 / 5.0f, rand() % 5 / 5.0f) *
-        // 0.2f;
 
         float delay = (rand() % 200) / 20.0f + (rand() % 1000) / 250.0f;
         float lifetime = 2.f + (rand() % 10);
@@ -351,17 +346,17 @@ void Tema1::Update(float deltaTimeSeconds)
     if (framebuffer_object)
     {
         glm::mat4 cubeView[6] = {
-                glm::lookAt(mirrorPosition, glm::vec3(1.0f, 0.0f, 0.0f) + mirrorPosition,
+                glm::lookAt(mirrorPosition, glm::vec3(1.0f, 0.0f, 0.0f),
                             glm::vec3(0.0f, -1.0f, 0.0f)), // +X
-                glm::lookAt(mirrorPosition, glm::vec3(-1.0f, 0.0f, 0.0f) + mirrorPosition,
+                glm::lookAt(mirrorPosition, glm::vec3(-1.0f, 0.0f, 0.0f),
                             glm::vec3(0.0f, -1.0f, 0.0f)), // -X
-                glm::lookAt(mirrorPosition, glm::vec3(0.0f, 1.0f, 0.0f) + mirrorPosition,
+                glm::lookAt(mirrorPosition, glm::vec3(0.0f, 1.0f, 0.0f),
                             glm::vec3(0.0f, 0.0f, 1.0f)), // +Y
-                glm::lookAt(mirrorPosition, glm::vec3(0.0f, -1.0f, 0.0f) + mirrorPosition,
+                glm::lookAt(mirrorPosition, glm::vec3(0.0f, -1.0f, 0.0f),
                             glm::vec3(0.0f, 0.0f, -1.0f)), // -Y
-                glm::lookAt(mirrorPosition, glm::vec3(0.0f, 0.0f, 1.0f) + mirrorPosition,
+                glm::lookAt(mirrorPosition, glm::vec3(0.0f, 0.0f, 1.0f),
                             glm::vec3(0.0f, -1.0f, 0.0f)), // +Z
-                glm::lookAt(mirrorPosition, glm::vec3(0.0f, 0.0f, -1.0f) + mirrorPosition,
+                glm::lookAt(mirrorPosition, glm::vec3(0.0f, 0.0f, -1.0f),
                             glm::vec3(0.0f, -1.0f, 0.0f)), // -Z
             };
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_object);
@@ -435,17 +430,6 @@ void Tema1::Update(float deltaTimeSeconds)
 
             glUniform1i(glGetUniformLocation(shader->program, "cube_draw"), 0);
 
-            // auto shaderOutline = shaders["outline"];
-
-            // shaderOutline->Use();
-
-            // // TODO(student): Add a shrinking parameter for scaling each
-            // // triangle in the geometry shader
-            // int loc_instances = shaderOutline->GetUniformLocation("viewVector");
-            // glm::vec3 viewVector = GetSceneCamera()->m_transform->GetLocalOZVector();
-            // glUniform3fv(loc_instances, 1, glm::value_ptr(viewVector));
-
-            // Note that we only render a single mesh!
             meshes["archer"]->Render();
         }
 
@@ -478,9 +462,6 @@ void Tema1::Update(float deltaTimeSeconds)
             glUniformMatrix4fv(
                 glGetUniformLocation(shader->GetProgramID(), "viewMatrices"), 6, GL_FALSE,
                 glm::value_ptr(cubeView[0]));
-
-
-
 
 
             glEnable(GL_DEPTH_TEST);
@@ -556,18 +537,19 @@ void Tema1::Update(float deltaTimeSeconds)
         meshes["archer"]->Render();
     }
 
-    // BUNNY
+    // QUAD
     {
         Shader *shader = shaders["CubeMap"];
         shader->Use();
 
         glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::translate(modelMatrix, mirrorPosition);
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(2.0f));
+
         modelMatrix = glm::rotate(modelMatrix, mirrorRotationOY, glm::vec3(0,1,0));
         modelMatrix = glm::rotate(modelMatrix, mirrorRotationOX, glm::vec3(1,0,0));
         modelMatrix = glm::rotate(modelMatrix, mirrorRotationOZ, glm::vec3(0,0,1));
 
-        modelMatrix = glm::translate(modelMatrix, mirrorPosition);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(2.0f));
         glUniformMatrix4fv(shader->loc_model_matrix, 1, GL_FALSE,
                            glm::value_ptr(modelMatrix));
         glUniformMatrix4fv(shader->loc_view_matrix, 1, GL_FALSE,
@@ -599,70 +581,9 @@ void Tema1::Update(float deltaTimeSeconds)
         glUniform1i(shader->GetUniformLocation("type"), type);
 
 
-        meshes["bunny"]->Render();
+        meshes["quad"]->Render();
     }
 
-
-    // PARTICLES
-
-    // // CENTER CUBE
-    // {
-    //     glm::mat4 model = glm::translate(glm::mat4(1), generator_position);
-    //     if (scene == 1 || scene == 2)
-    //         model = glm::scale(model, glm::vec3(10,0.5,0.5));
-    //     else
-    //         model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
-    //     model = glm::mat4(1);
-
-    //     RenderMesh(meshes["cube"], shaders["Simple"], model);
-    // }
-
-    // OUTLINE
-    // {
-    //     auto shader = shaders["outline"];
-
-    //     shader->Use();
-
-    //     // TODO(student): Add a shrinking parameter for scaling each
-    //     // triangle in the geometry shader
-    //     int loc_instances = shader->GetUniformLocation("viewVector");
-    //     glm::vec3 viewVector = GetSceneCamera()->m_transform->GetLocalOZVector();
-    //     glUniform3fv(loc_instances, 1, glm::value_ptr(viewVector));
-
-    //     // Note that we only render a single mesh!
-    //     RenderMesh(meshes["archer"], shaders["outline"], glm::vec3(-3.3f, 0.5f, 0),
-    //                glm::vec3(0.01f));
-    // }
-
-    // PARTICLES
-    // {
-    //     glLineWidth(3);
-
-    //     glEnable(GL_BLEND);
-    //     glDisable(GL_DEPTH_TEST);
-    //     glBlendFunc(GL_ONE, GL_ONE);
-    //     glBlendEquation(GL_FUNC_ADD);
-    //     auto shader = shaders["particles"];
-    //     if (shader->GetProgramID())
-    //     {
-    //         shader->Use();
-
-    //         TextureManager::GetTexture("particle2.png")->BindToTextureUnit(GL_TEXTURE0);
-    //         particleEffect->Render(GetSceneCamera(), shader);
-    //         // TODO(student): Send uniforms generator_position,
-    //         // deltaTime and offset to the shader
-    //         GLint position = glGetUniformLocation(shader->program, "generator_position");
-    //         glUniform3fv(position, 1, glm::value_ptr(generator_position));
-
-    //         position = glGetUniformLocation(shader->program, "deltaTime");
-    //         glUniform1f(position, deltaTimeSeconds);
-
-    //         position = glGetUniformLocation(shader->program, "offset");
-    //         glUniform1f(position, offset);
-    //     }
-    //     glEnable(GL_DEPTH_TEST);
-    //     glDisable(GL_BLEND);
-    // }
 }
 
 void Tema1::FrameEnd()
