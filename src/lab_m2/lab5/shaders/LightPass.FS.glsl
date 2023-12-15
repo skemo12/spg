@@ -55,15 +55,15 @@ void main()
 
     // TODO(student): Sample the texture 'texture_position' at tex_coord to obtain
     // the world space position of the light source.
-    vec3 wPos = vec3(0.0);
+    vec3 wPos = texture(texture_position, tex_coord).xyz;
 
     // TODO(student): Sample the texture 'texture_normal' at tex_coord to obtain
     // the world space normal vector of the light source.
-    vec3 wNorm = vec3(0.0);
+    vec3 wNorm = texture(texture_normal, tex_coord).xyz;
 
     // TODO(student): Compute out_color.rgb using 'PhongLight' method with the world space position 
     // and the world space normal vector of the light source.
-    out_color.rgb = vec3(0.2);
+    out_color.rgb = PhongLight(wPos, wNorm);
 
     out_color.a = 1.0; 
 }

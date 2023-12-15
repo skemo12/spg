@@ -82,6 +82,10 @@ void Lab4::Init()
         // TODO(student): Load images "rain.png", "snowflake.png" and "fire.png" as
         // textures, similar to "particle2.png", loaded above. The images can be
         // found in the same directory as "particle2.png"
+        TextureManager::LoadTexture(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::TEXTURES), "rain.png");
+        TextureManager::LoadTexture(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::TEXTURES), "fire.png");
+        TextureManager::LoadTexture(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::TEXTURES), "snowflake.png");
+
 
     }
 
@@ -227,7 +231,14 @@ void Lab4::Update(float deltaTimeSeconds)
 
             // TODO(student): Send uniforms generator_position,
             // deltaTime and offset to the shader
+            GLint position = glGetUniformLocation(shader->program, "generator_position");
+            glUniform3fv(position, 1, glm::value_ptr(generator_position));
 
+            position = glGetUniformLocation(shader->program, "deltaTime");
+            glUniform1f(position, deltaTimeSeconds);
+
+            position = glGetUniformLocation(shader->program, "offset");
+            glUniform1f(position, offset);
         }
     }
 
@@ -239,11 +250,19 @@ void Lab4::Update(float deltaTimeSeconds)
             shader->Use();
 
             // TODO(student): Send correct texture for snow
-            TextureManager::GetTexture("particle2.png")->BindToTextureUnit(GL_TEXTURE0);
+            TextureManager::GetTexture("snowflake.png")->BindToTextureUnit(GL_TEXTURE0);
             particleEffect->Render(GetSceneCamera(), shader);
 
             // TODO(student): Send uniforms generator_position,
             // deltaTime and offset to the shader
+            GLint position = glGetUniformLocation(shader->program, "generator_position");
+            glUniform3fv(position, 1, glm::value_ptr(generator_position));
+
+            position = glGetUniformLocation(shader->program, "deltaTime");
+            glUniform1f(position, deltaTimeSeconds);
+
+            position = glGetUniformLocation(shader->program, "offset");
+            glUniform1f(position, offset);
 
         }
     }
@@ -256,12 +275,19 @@ void Lab4::Update(float deltaTimeSeconds)
             shader->Use();
 
             // TODO(student): Send correct texture for rain
-            TextureManager::GetTexture("particle2.png")->BindToTextureUnit(GL_TEXTURE0);
+            TextureManager::GetTexture("rain.png")->BindToTextureUnit(GL_TEXTURE0);
             particleEffect->Render(GetSceneCamera(), shader);
 
             // TODO(student): Send uniforms generator_position,
             // deltaTime and offset to the shader
+            GLint position = glGetUniformLocation(shader->program, "generator_position");
+            glUniform3fv(position, 1, glm::value_ptr(generator_position));
 
+            position = glGetUniformLocation(shader->program, "deltaTime");
+            glUniform1f(position, deltaTimeSeconds);
+
+            position = glGetUniformLocation(shader->program, "offset");
+            glUniform1f(position, offset);
         }
     }
 
@@ -272,12 +298,19 @@ void Lab4::Update(float deltaTimeSeconds)
         {
             shader->Use();
             // TODO(student): Send correct texture for fire
-            TextureManager::GetTexture("particle2.png")->BindToTextureUnit(GL_TEXTURE0);
+            TextureManager::GetTexture("fire.png")->BindToTextureUnit(GL_TEXTURE0);
             particleEffect->Render(GetSceneCamera(), shader);
 
             // TODO(student): Send uniforms generator_position,
             // deltaTime and offset to the shader
+            GLint position = glGetUniformLocation(shader->program, "generator_position");
+            glUniform3fv(position, 1, glm::value_ptr(generator_position));
 
+            position = glGetUniformLocation(shader->program, "deltaTime");
+            glUniform1f(position, deltaTimeSeconds);
+
+            position = glGetUniformLocation(shader->program, "offset");
+            glUniform1f(position, offset);
         }
     }
 
@@ -290,7 +323,7 @@ void Lab4::Update(float deltaTimeSeconds)
             model = glm::scale(model, glm::vec3(10,0.5,0.5));
         else
             model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
-        RenderMesh(meshes["box"], shaders["Simple"], model);
+        //RenderMesh(meshes["box"], shaders["Simple"], model);
     }
 }
 

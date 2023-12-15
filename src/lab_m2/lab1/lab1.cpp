@@ -1,4 +1,5 @@
 #include "lab_m2/lab1/lab1.h"
+#include "components/transform.h"
 
 #include <vector>
 #include <iostream>
@@ -27,7 +28,7 @@ void Lab1::Init()
 {
     nrInstances = 0;
     maxInstances = 50;
-    shrink = 0;
+    shrink = 1.0;
 
     auto camera = GetSceneCamera();
     camera->SetPositionAndRotation(glm::vec3(0, 5, 4), glm::quat(glm::vec3(-30 * TO_RADIANS, 0, 0)));
@@ -71,6 +72,8 @@ void Lab1::Update(float deltaTimeSeconds)
 
         // TODO(student): Add a shrinking parameter for scaling each
         // triangle in the geometry shader
+        loc_instances = shader->GetUniformLocation("shrink");
+        glUniform1f(loc_instances, shrink);
 
         // Note that we only render a single mesh!
         RenderMesh(meshes["bamboo"], shaders["Instances"], glm::vec3(-3.3f, 0.5f, 0), glm::vec3(0.1f));
@@ -95,7 +98,16 @@ void Lab1::OnInputUpdate(float deltaTime, int mods)
     // Treat continuous update based on input with window->KeyHold()
 
     // TODO(student): Add events for modifying the shrinking parameter
+    if (window->KeyHold(GLFW_KEY_L)) 
+    {
+        shrink += 1.25 * deltaTime;
+        shrink = shrink > 2 ? 2 : shrink;
+    }
+    if (window->KeyHold(GLFW_KEY_K)) {
+        shrink -= 1.25 * deltaTime;
+        shrink = shrink < 0.75 ? 0.75 : shrink;
 
+    }
 }
 
 
@@ -103,13 +115,13 @@ void Lab1::OnKeyPress(int key, int mods)
 {
     // Add key press event
 
-    if (key == GLFW_KEY_EQUAL)
+    if (key == GLFW_KEY_P)
     {
         nrInstances++;
         nrInstances %= maxInstances;
     }
 
-    if (key == GLFW_KEY_MINUS)
+    if (key == GLFW_KEY_O)
     {
         nrInstances--;
         nrInstances %= maxInstances;

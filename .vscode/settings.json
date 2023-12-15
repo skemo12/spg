@@ -1,0 +1,9 @@
+{
+    "cmake.configureOnOpen": true,
+    "files.associations": {
+        "cstdlib": "cpp",
+        "iostream": "cpp",
+        "vector": "cpp"
+    },
+    "cSpell.enabled": false
+}

@@ -18,7 +18,7 @@ void main()
 {
     int i, layer;
 
-    // TODO(student): Update the code to compute the position from each camera view 
+    // TODO(student): Update the code to compute the position from each camera view
     // in order to render a cubemap in one pass using gl_Layer. Use the "viewMatrices"
     // attribute according to the corresponding layer.
     for (layer = 0; layer < 6; layer++)
@@ -34,5 +34,5 @@ void main()
 
     }
 
-    
+
 }

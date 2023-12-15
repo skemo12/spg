@@ -24,6 +24,7 @@ void main()
 
     vec2 tex_coord = vec2(0, 0);
     
+    tex_coord = vec2(texture_coord.x / 4.0f + fire_stage / 4.0f, texture_coord.y);
     vec3 color = texture(texture_1, tex_coord).xyz;
     out_color = vec4(color, 1);
 }

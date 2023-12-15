@@ -35,6 +35,11 @@ namespace m2
 
         // Processing effects
         void GrayScale();
+        void BitToBit(int size);
+        void Blur(unsigned char *data);
+        void GrayScale(unsigned char *data);
+        void Median();
+        void Sobel();
         void SaveImage(const std::string &fileName);
 
      private:

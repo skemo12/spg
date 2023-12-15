@@ -15,8 +15,6 @@ void main()
     // TODO(student): Apply the texture
     vec4 color = texture2D(texture_1, texture_coord);
     // TODO(student): Discard when alpha component < 0.75
-    if (color.a < 0.75) {
-	    discard;
-    }
-    out_color = color;
+
+    out_color = vec4(vec3(1,0,0), 1.0);
 }

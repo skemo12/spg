@@ -62,6 +62,7 @@ void main()
     // the speed must be multiplied with deltaTime.
 
     spd = spd - vec3(0, 0.9, 0) * deltaTime;
+    pos += spd * deltaTime;
 
     if(pos.y < (-20 + rand(pos.xy) * 10))
     {
