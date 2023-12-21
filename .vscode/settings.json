@@ -3,7 +3,8 @@
     "files.associations": {
         "cstdlib": "cpp",
         "iostream": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "xutility": "cpp"
     },
     "cSpell.enabled": false
 }
