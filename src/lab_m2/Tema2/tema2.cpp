@@ -153,7 +153,12 @@ void Tema2::GrayScale(Texture2D *oImage, Texture2D *pImage)
     unsigned char *newData = pImage->GetImageData();
 
     if (channels < 3)
+    {
+        memcpy(newData, data,
+               oImage->GetWidth() * oImage->GetHeight() * channels *
+                   sizeof(unsigned char));
         return;
+    }
 
     glm::ivec2 imageSize = glm::ivec2(oImage->GetWidth(), oImage->GetHeight());
 
@@ -183,11 +188,14 @@ void Tema2::Blur(Texture2D *oImage, Texture2D *pImage)
     if (channels < 3)
     {
         cout << "Blur implementations requires channel = 3\n";
+        memcpy(newData, data,
+               oImage->GetWidth() * oImage->GetHeight() * channels *
+                   sizeof(unsigned char));
         return;
     }
 
     glm::ivec2 imageSize = glm::ivec2(oImage->GetWidth(), oImage->GetHeight());
-    int radius = 9;
+    int radius = 3;
     int samples = radius * radius;
 
     for (int i = (radius - 1) / 2; i < imageSize.y - radius / 2; i++)
@@ -206,9 +214,9 @@ void Tema2::Blur(Texture2D *oImage, Texture2D *pImage)
                     r_sum += data[offset];
                     g_sum += data[offset + 1];
                     b_sum += data[offset + 2];
-                    offset += 3;
+                    offset += channels;
                 }
-                offset -= 3 * radius;
+                offset -= channels * radius;
                 offset += channels * imageSize.x;
             }
             offset = channels * (i * imageSize.x + j);
@@ -220,64 +228,16 @@ void Tema2::Blur(Texture2D *oImage, Texture2D *pImage)
     pImage->UploadNewData(newData);
 }
 
-void Tema2::Sobel()
-{
-    unsigned char *data = originalImage->GetImageData();
-    Blur(originalImage, processedImage);
-    memcpy(copyImage->GetImageData(), processedImage->GetImageData(),
-           processedImage->GetWidth() * processedImage->GetHeight() *
-               processedImage->GetNrChannels() * sizeof(unsigned char));
-
-    GrayScale(copyImage, processedImage);
-
-    unsigned char *newData = processedImage->GetImageData();
-    glm::ivec2 imageSize =
-        glm::ivec2(originalImage->GetWidth(), originalImage->GetHeight());
-
-    int nrChannels = originalImage->GetNrChannels();
-    cout << nrChannels << endl;
-    for (int i = 1; i < imageSize.y - 1; i++)
-    {
-        for (int j = 1; j < imageSize.x - 1; j++)
-        {
-            int a_0_0 = data[nrChannels * ((i - 1) * imageSize.x + j - 1)];
-            int a_0_1 = data[nrChannels * ((i - 1) * imageSize.x + j)];
-            int a_0_2 = data[nrChannels * ((i - 1) * imageSize.x + j + 1)];
-            int a_1_0 = data[nrChannels * (i * imageSize.x + j - 1)];
-            int a_1_2 = data[nrChannels * (i * imageSize.x + j + 1)];
-            int a_2_0 = data[nrChannels * ((i + 1) * imageSize.x + j - 1)];
-            int a_2_1 = data[nrChannels * ((i + 1) * imageSize.x + j)];
-            int a_2_2 = data[nrChannels * ((i + 1) * imageSize.x + j + 1)];
-
-            // int dx = -a_0_0 + a_0_2 - 2 * a_1_0 + 2 * a_1_2 - a_2_0 + a_2_2;
-            // int dy = a_0_0 + 2 * a_0_1 + a_0_2 - a_2_0 - 2 * a_2_1 - a_2_2;
-            int dx = a_2_2 + 2 * a_1_2 + a_0_2 - a_2_0 - 2 * a_1_0 - a_0_0;
-            int dy = a_2_2 + 2 * a_2_1 + a_2_0 - a_0_2 - 2 * a_0_1 - a_0_0;
-            int val = abs(dx) + abs(dy);
-            if (val < 50)
-                val = 0;
-            else
-                val = 255;
-            newData[nrChannels * (i * imageSize.x + j)] = (unsigned char)val;
-            newData[nrChannels * (i * imageSize.x + j) + 1] = (unsigned char)val;
-            newData[nrChannels * (i * imageSize.x + j) + 2] = (unsigned char)val;
-        }
-    }
-    processedImage->UploadNewData(newData);
-}
-
 void Tema2::Sobel(Texture2D *oImage, Texture2D *pImage, Texture2D *copy)
 {
-    unsigned char *data = oImage->GetImageData();
+
+    Blur(oImage, copy);
 
     Blur(oImage, pImage);
-    memcpy(copy->GetImageData(), pImage->GetImageData(),
-           pImage->GetWidth() * pImage->GetHeight() * pImage->GetNrChannels() *
-               sizeof(unsigned char));
-
-    GrayScale(copy, pImage);
+    GrayScale(pImage, copy);
 
     unsigned char *newData = pImage->GetImageData();
+    unsigned char *data = copy->GetImageData();
 
     glm::ivec2 imageSize = glm::ivec2(oImage->GetWidth(), oImage->GetHeight());
 
@@ -297,12 +257,10 @@ void Tema2::Sobel(Texture2D *oImage, Texture2D *pImage, Texture2D *copy)
             int a_2_1 = data[nrChannels * ((i + 1) * imageSize.x + j)];
             int a_2_2 = data[nrChannels * ((i + 1) * imageSize.x + j + 1)];
 
-            // int dx = -a_0_0 + a_0_2 - 2 * a_1_0 + 2 * a_1_2 - a_2_0 + a_2_2;
-            // int dy = a_0_0 + 2 * a_0_1 + a_0_2 - a_2_0 - 2 * a_2_1 - a_2_2;
             int dx = a_2_2 + 2 * a_1_2 + a_0_2 - a_2_0 - 2 * a_1_0 - a_0_0;
             int dy = a_2_2 + 2 * a_2_1 + a_2_0 - a_0_2 - 2 * a_0_1 - a_0_0;
             int val = abs(dx) + abs(dy);
-            if (val < 100)
+            if (val < 220)
                 val = 0;
             else
                 val = 255;
@@ -311,6 +269,7 @@ void Tema2::Sobel(Texture2D *oImage, Texture2D *pImage, Texture2D *copy)
             newData[nrChannels * (i * imageSize.x + j) + 2] = (unsigned char)val;
         }
     }
+
     pImage->UploadNewData(newData);
 }
 
@@ -334,8 +293,10 @@ void Tema2::RemoveWatermark(Texture2D *oImage, Texture2D *pImage, Texture2D *cop
 
     int nrChannels = oImage->GetNrChannels();
     int nrChannelsWatermark = oWaterMark->GetNrChannels();
-    int y, x, yw, xw, offset, maybe, lineImage, lineWaterMark, offsetWatermark, localOffset, line, neg;
+    int y, x, yw, xw, offset, maybe, lineImage, lineWaterMark, offsetWatermark,
+        localOffset, line, neg;
     int total = 0;
+
     for (yw = 0; yw < wISize.y; yw++)
     {
         lineWaterMark = yw * wISize.x * nrChannelsWatermark;
@@ -349,41 +310,49 @@ void Tema2::RemoveWatermark(Texture2D *oImage, Texture2D *pImage, Texture2D *cop
             }
         }
     }
-    total = total / 16;
-    int prag1 = (int) total * 0.9;
-    int prag2 = (int) total * 0.1;
+
+    total = total / 4;
+    cout << "Total:\n";
     cout << total << endl;
+    int prag1 = static_cast<int>(total * 0.84);
+    int prag2 = static_cast<int>(total * 0.10);
+
     cout << prag1 << endl;
     cout << prag2 << endl;
-    for (y = 0; y < imageSize.y - wISize.y - 1; y++)
+
+    for (y = 0; y < imageSize.y - wISize.y; y++)
     {
         line = y * imageSize.x * nrChannels;
-        for (x = 0; x < imageSize.x - wISize.x - 1; x++)
+        for (x = 0; x < imageSize.x - wISize.x; x++)
         {
             offset = line + x * nrChannels;
             maybe = 0;
             neg = 0;
 
-            for (yw = 0; yw < wISize.y; yw+=4)
+            for (yw = 0; yw < wISize.y; yw += 2)
             {
                 lineWaterMark = yw * wISize.x * nrChannelsWatermark;
                 lineImage = yw * imageSize.x * nrChannels + offset;
 
-                for (xw = 0; xw < wISize.x; xw+=4)
+                for (xw = 0; xw < wISize.x; xw += 2)
                 {
-                    offsetWatermark = nrChannelsWatermark * xw + lineWaterMark;
                     localOffset = nrChannels * xw + lineImage;
+                    if (data[localOffset] == 0)
+                    {
+                        continue;
+                    }
+                    offsetWatermark = nrChannelsWatermark * xw + lineWaterMark;
 
-                    if (data[localOffset] == waterMarkData[offsetWatermark] && data[localOffset] == 255)
+                    if (data[localOffset] == waterMarkData[offsetWatermark])
                     {
                         maybe += 1;
                     }
                 }
             }
 
-            if (maybe > prag1)
+            if (maybe >= prag1)
             {
-                cout << "match\n";
+                cout << "match " << maybe << endl;
                 for (yw = 0; yw < wISize.y; yw++)
                 {
                     lineWaterMark = yw * wISize.x * nrChannelsWatermark;
@@ -398,107 +367,23 @@ void Tema2::RemoveWatermark(Texture2D *oImage, Texture2D *pImage, Texture2D *cop
                         result[localOffset + 2] -= oMark[offsetWatermark + 2];
                     }
                 }
-                // y += wISize.y;
-                x += wISize.x / 2;
+                x += wISize.x - 2;
             }
             if (maybe < prag2)
             {
                 x += wISize.x / 4;
             }
-
         }
     }
+    // pImage->UploadNewData(data);
+
     memcpy(pImage->GetImageData(), copy->GetImageData(),
-        copy->GetWidth() * copy->GetHeight() * copy->GetNrChannels() *
-            sizeof(unsigned char));
+           copy->GetWidth() * copy->GetHeight() * copy->GetNrChannels() *
+               sizeof(unsigned char));
     cout << "End watermark\n";
 
     unsigned char *newData = copy->GetImageData();
     pImage->UploadNewData(newData);
-
-}
-void Tema2::Median()
-{
-    unsigned int channels = originalImage->GetNrChannels();
-    unsigned char *data = originalImage->GetImageData();
-    unsigned char *newData = processedImage->GetImageData();
-    unsigned char colors[27];
-    bool removed[27];
-
-    if (channels < 3)
-    {
-        cout << "Median implementations requires channel = 3\n";
-        return;
-    }
-
-    glm::ivec2 imageSize =
-        glm::ivec2(originalImage->GetWidth(), originalImage->GetHeight());
-
-    for (int i = 1; i < imageSize.y - 1; i++)
-    {
-        for (int j = 1; j < imageSize.x - 1; j++)
-        {
-            // selectez pixelii din jur
-            int offset = channels * ((i - 1) * imageSize.x + j - 1);
-            int poz = 0;
-            for (int k = 0; k < 3; k++)
-            {
-                memcpy(colors + poz, data + offset, 9 * sizeof(char));
-                poz += 9;
-                offset += channels * imageSize.x;
-            }
-            for (int k = 0; k < 27; k++)
-            {
-                removed[k] = false;
-            }
-
-            unsigned char ans[3] = {0, 0, 0};
-            poz = 0;
-            // pt fiecare chennel de culoare
-            for (int k = 0; k < 3; k++)
-            {
-                // pt fiecare bit
-                for (int r = 0; r < 8; r++)
-                {
-                    int ones = 0;
-                    int zeroes = 0;
-                    ans[poz] *= 2;
-                    for (int t = poz; t < 27; t += 3)
-                    {
-                        if (removed[t] == false)
-                        {
-                            int bit = (colors[t] >> (7 - r)) % 2;
-                            if (bit == 1)
-                                ones++;
-                            else
-                                zeroes++;
-                        }
-                    }
-                    int winner = 0;
-                    if (ones >= zeroes)
-                        winner = 1;
-
-                    ans[poz] += winner;
-                    // elimin valorile care nu au avut bitul corect
-                    for (int t = poz; t < 27; t += 3)
-                    {
-                        if (removed[t] == false)
-                        {
-                            int bit = (colors[t] >> (7 - r)) % 2;
-                            if (bit != winner)
-                                removed[t] = true;
-                        }
-                    }
-                }
-                poz++;
-            }
-            offset = channels * (i * imageSize.x + j);
-            newData[offset] = ans[0];
-            newData[offset + 1] = ans[1];
-            newData[offset + 2] = ans[2];
-        }
-    }
-    processedImage->UploadNewData(newData);
 }
 
 void Tema2::SaveImage(const std::string &fileName)
@@ -559,23 +444,23 @@ void Tema2::OnKeyPress(int key, int mods)
                 GrayScale(originalImage, processedImage);
             if (outputMode == 2)
                 Blur(originalImage, processedImage);
-            if (outputMode == 3)
-                Median();
             if (outputMode == 4)
                 Sobel(originalImage, processedImage, copyImage);
             if (outputMode == 5)
             {
                 auto start = chrono::high_resolution_clock::now();
-                RemoveWatermark(originalImage, processedImage, copyImage, waterMark, processedWaterMark);
+                RemoveWatermark(originalImage, processedImage, copyImage, waterMark,
+                                processedWaterMark);
 
                 auto stop = chrono::high_resolution_clock::now();
                 auto duration = chrono::duration_cast<chrono::seconds>(stop - start);
-                cout << "Time taken by function: "
-                    << duration.count() << " seconds" << endl;
-                auto durationms = chrono::duration_cast<chrono::microseconds>(stop - start);
+                cout << "Time taken by function: " << duration.count() << " seconds"
+                     << endl;
+                auto durationms =
+                    chrono::duration_cast<chrono::microseconds>(stop - start);
 
-                cout << "Time taken by function: "
-                    << durationms.count() << " microseconds" << endl;
+                cout << "Time taken by function: " << durationms.count()
+                     << " microseconds" << endl;
             }
             outputMode = 0;
         }
