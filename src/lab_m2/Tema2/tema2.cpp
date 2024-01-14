@@ -314,7 +314,7 @@ void Tema2::RemoveWatermark(Texture2D *oImage, Texture2D *pImage, Texture2D *cop
     total = total / 4;
     cout << "Total:\n";
     cout << total << endl;
-    int prag1 = static_cast<int>(total * 0.84);
+    int prag1 = static_cast<int>(total * 0.80);
     int prag2 = static_cast<int>(total * 0.10);
 
     cout << prag1 << endl;
@@ -375,7 +375,6 @@ void Tema2::RemoveWatermark(Texture2D *oImage, Texture2D *pImage, Texture2D *cop
             }
         }
     }
-    // pImage->UploadNewData(data);
 
     memcpy(pImage->GetImageData(), copy->GetImageData(),
            copy->GetWidth() * copy->GetHeight() * copy->GetNrChannels() *
